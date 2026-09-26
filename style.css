@@ -8,11 +8,14 @@ aside {
     width: 220px;
     min-height: 100vh;
     background-color: #111827;
+    padding: 24px;
 
 }
 
 aside h2 {
     color: white;
+    margin-top: 0;
+    margin-bottom: 30px;
 }
 
 nav {
@@ -22,8 +25,16 @@ nav {
 }
 
 nav a {
+    color: #d1d5db;
+    text-decoration: none; 
+    padding: 10px 12px;
+    border-radius: 8px; 
+}
+
+nav a.active {
+    background-color: #374151;
     color: white;
-    text-decoration: none;  
+
 }
 
 main {
@@ -40,4 +51,80 @@ section {
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 10px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 42%;
+    height: 100%;
+    background-color: #111827;
+    border-radius: 10px;
+}
+
+.skill-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.skill-grid article {
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+.skill-progress {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.skill-progress-fill {
+    height: 100%;
+    background-color: #111827;
+    border-radius: 8px;
+}
+
+.skill-grid article h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.skill-grid article p {
+    margin: 8px 0;
+}
+
+.learning-item {
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.learning-item h3 {
+    margin-top: 0;
+}
+
+.learning-item button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
 }

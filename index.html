@@ -13,7 +13,7 @@
         <h2>Skill Tracker</h2>
 
         <nav>
-            <a href="#">Dashboard</a>
+            <a href="#" class="active">Dashboard</a>
             <a href="#">Skills</a>
             <a href="#">Topics</a>
             <a href="#">Projects</a>
@@ -31,41 +31,78 @@
 
         <section>
             <h2>Overall Progress</h2>
-            <p>42%</p>
-            <div></div>
+            <div class="progress-info"> 
+                <span>Overall Progress</span>
+                <span>42%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
             <p>Keep going! You're making progress in your learning journey.</p>
         </section>
 
         <section>
             <h2>My Skills</h2>
 
-            <article>
-                <h3>Python</h3>
-                <p>70%</p>
-                <p>7 of 10 topics completed</p>
-            </article>
+            <div class="skill-grid">
 
-            <article>
-                <h3>Web Development</h3>
-                <p>30%</p>
-                <p>3 of 10 topics completed</p>
-            </article>
+                <article>
+                    <h3>Python</h3>
+                    <p>70%</p>
 
-            <article>
-                <h3>Git & GitHub</h3>
-                <p>40%</p>
-                <p>4 of 10 topics completed</p>
-            </article>
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 70%;"></div>
+                    </div>
+                    <p>7 of 10 topics completed</p>
+                </article>
+    
+                <article>
+                    <h3>Web Development</h3>
+                    <p>30%</p>
 
-            <article>
-                <h3>SQL</h3>
-                <p>15%</p>
-                <p>1 of 7 topics completed</p>
-            </article>
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 30%;"></div>
+                    </div>
+                    <p>3 of 10 topics completed</p>
+                </article>
+    
+                <article>
+                    <h3>Git & GitHub</h3>
+                    <p>40%</p>
+
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 40%;"></div>
+                    </div>
+                    <p>4 of 10 topics completed</p>
+                </article>
+    
+                <article>
+                    <h3>SQL</h3>
+                    <p>15%</p>
+
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 15%;"></div>
+                    </div>
+                    <p>1 of 7 topics completed</p>
+                </article>
+            </div>
         </section>
 
         <section>
             <h2>Continue Learning</h2>
+
+            <div class="learning-item">
+                <h3>Python - Exception Handling</h3>
+                <p>Continue learning from where you left off.</p>
+                <button>Continue</button>
+            </div>
+
+            <div class="learning-item">
+                <h3>Web Development - JavaScript Basics</h3>
+                <p>Start your next topic.</p>
+                <button>Continue</button>off
+            </div>
         </section>
 
     </main>
