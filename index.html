@@ -34,11 +34,11 @@
             <h2>Overall Progress</h2>
             <div class="progress-info"> 
                 <span>Overall Progress</span>
-                <span>42%</span>
+                <span id="overall-progress">0%</span>
             </div>
 
             <div class="progress-bar">
-                <div class="progress-fill"></div>
+                <div id="overall-progress-fill" class="progress-fill"></div>
             </div>
             <p>Keep going! You're making progress in your learning journey.</p>
         </section>
@@ -50,12 +50,12 @@
 
                 <article>
                     <h3>Python</h3>
-                    <p>70%</p>
+                    <p id="python-skill-progress">0%</p>
 
                     <div class="skill-progress">
-                        <div class="skill-progress-fill" style="width: 70%;"></div>
+                        <div id="python-skill-progress-fill" class="skill-progress-fill" style="width: 70%;"></div>
                     </div>
-                    <p>7 of 10 topics completed</p>
+                    <p id="python-topic-count">0 of 5 topics completed</p>
                 </article>
     
                 <article>
@@ -96,13 +96,13 @@
             <div class="learning-item">
                 <h3>Python - Exception Handling</h3>
                 <p class="learning-status">Continue learning from where you left off.</p>
-                <button data-topic="Python - Exception Handling">Continue</button>
+                <button data-topic-url="topic.html?skill=python&topic=exception-handling">Continue</button>
             </div>
 
             <div class="learning-item">
                 <h3>Web Development - JavaScript Basics</h3>
                 <p class="learning-status">Start your next topic.</p>
-                <button data-topic="JavaScript Basics">Continue</button>
+                <button data-topic-url="topic.html?skill=web-development&topic=javascript-basics">Continue</button>
             </div>
         </section>
 
