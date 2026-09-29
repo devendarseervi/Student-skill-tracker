@@ -229,3 +229,43 @@ section {
 #note-form button:hover {
     background: #111827;
 }
+
+/* Skill form */
+
+#skill-name-input {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #ffffff;
+    font-size: 14px;
+    margin-right: 10px;
+    margin-bottom: 20px;
+}
+
+#add-skill-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #374151;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#add-skill-button:hover {
+    background: #111827;
+}
+
+/* Topic completion button */
+
+#complete-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #374151;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#complete-button:hover {
+    background: #111827;
+}
