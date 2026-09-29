@@ -100,7 +100,14 @@ const selectedTopic = topics[topic];
 
 if (selectedTopic) {
     document.querySelector("#topic-title").textContent = selectedTopic.name;
-    document.querySelector("#skill-name").textContent = "Python";
+    const skillNames = {
+    python: "Python",
+    "web-development": "Web Development",
+    "git-github": "Git & GitHub",
+    sql: "SQL"
+};
+
+document.querySelector("#skill-name").textContent = skillNames[skill] || skill;
     document.querySelector("#topic-content").innerHTML = selectedTopic.content;
 
     const savedStatus = localStorage.getItem(topic);
@@ -118,33 +125,91 @@ if (completeButton && selectedTopic) {
         selectedTopic.completed = true;
 
         localStorage.setItem(topic, "completed");
+        console.log("Completed topic key:", topic);
 
         document.querySelector("#topic-status").textContent = "Completed";
     });
 }
 
-const pythonTopics = [
-    "variables",
-    "data-types",
-    "operators",
-    "conditional-statements",
-    "loops"
-];
+const skillTopics = {
+    python: [
+        "Variables",
+        "Data Types",
+        "Operators",
+        "Conditional Statements",
+        "Loops"
+    ],
 
-let completedTopics = 0;
+    "web-development": [
+        "HTML Basics",
+        "CSS Basics",
+        "JavaScript Basics"
+    ],
 
-pythonTopics.forEach(function(topic) {
-    if (localStorage.getItem(topic) === "completed") {
-        completedTopics++;
+    "git-github": [
+        "Git Basics",
+        "Repositories",
+        "Commits",
+        "Branches"
+    ],
+
+    sql: [
+        "SQL Basics",
+        "SELECT Statement",
+        "WHERE Clause",
+        "JOINs"
+    ]
+};
+
+function getSkillProgress(skillName) {
+    const topicNames = skillTopics[skillName];
+
+    if (!topicNames || topicNames.length === 0) {
+        return {
+            completed: 0,
+            total: 0,
+            percentage: 0
+        };
     }
-});
 
-const pythonProgress = (completedTopics / pythonTopics.length) * 100;
+    let completed = 0;
+
+    topicNames.forEach(function(topicName) {
+        const topicKey = topicName
+            .toLowerCase()
+            .replace(/&/g, "and")
+            .replace(/\s+/g, "-");
+
+        if (localStorage.getItem(topicKey) === "completed") {
+            completed++;
+        }
+    });
+
+    const percentage = (completed / topicNames.length) * 100;
+
+    return {
+        completed: completed,
+        total: topicNames.length,
+        percentage: percentage
+    };
+}
+
+const currentSkill = skill || "python";
+const currentSkillProgress = getSkillProgress(currentSkill);
+
+const completedTopics = currentSkillProgress.completed;
+const totalTopics = currentSkillProgress.total;
+const currentProgress = currentSkillProgress.percentage;
+
+const pythonProgressData = getSkillProgress("python");
+const pythonProgress = pythonProgressData.percentage;
+const pythonCompletedTopics = pythonProgressData.completed;
+const pythonTotalTopics = pythonProgressData.total;
 
 const progressElement = document.querySelector("#python-progress");
 
 if (progressElement) {
-    progressElement.textContent = "Progress: " + pythonProgress + "%";
+    progressElement.textContent = "Progress: " + currentProgress + "%";
 }
 
 const pythonSkillProgress = document.querySelector("#python-skill-progress");
@@ -154,7 +219,8 @@ const pythonTopicCount = document.querySelector("#python-topic-count");
 if (pythonSkillProgress && pythonSkillProgressFill && pythonTopicCount) {
     pythonSkillProgress.textContent = pythonProgress + "%";
     pythonSkillProgressFill.style.width = pythonProgress + "%";
-    pythonTopicCount.textContent = completedTopics + " of " + pythonTopics.length + " topics completed";
+    pythonTopicCount.textContent =
+        pythonCompletedTopics + " of " + pythonTotalTopics + " topics completed";
 }
 
 const overallProgress = document.querySelector("#overall-progress");
@@ -163,4 +229,87 @@ const overallProgressFill = document.querySelector("#overall-progress-fill");
 if (overallProgress && overallProgressFill) {
     overallProgress.textContent = pythonProgress + "%";
     overallProgressFill.style.width = pythonProgress + "%";
+}
+
+const pythonSkillPageProgress = document.querySelector("#python-skill-page-progress");
+const pythonSkillPageProgressFill = document.querySelector("#python-skill-page-progress-fill");
+const pythonSkillPageTopicCount = document.querySelector("#python-skill-page-topic-count");
+
+if (
+    pythonSkillPageProgress &&
+    pythonSkillPageProgressFill &&
+    pythonSkillPageTopicCount
+) {
+    pythonSkillPageProgress.textContent = pythonProgress + "%";
+    pythonSkillPageProgressFill.style.width = pythonProgress + "%";
+    pythonSkillPageTopicCount.textContent =
+        pythonCompletedTopics + " of " + pythonTotalTopics + " topics completed";
+}
+
+const skillNameInput = document.querySelector("#skill-name-input");
+const addSkillButton = document.querySelector("#add-skill-button");
+
+if (skillNameInput && addSkillButton) {
+    addSkillButton.addEventListener("click", function() {
+        const skillName = skillNameInput.value.trim();
+
+        if (skillName === "") {
+            return;
+        }
+
+        const skillCard = document.createElement("article");
+
+        skillCard.innerHTML = `
+            <h3>${skillName}</h3>
+            <p>0%</p>
+
+            <div class="skill-progress">
+                <div class="skill-progress-fill" style="width: 0%;"></div>
+            </div>
+
+            <p>0 topics completed</p>
+
+            <a href="#">View Topics</a>
+        `;
+
+        document.querySelector(".skill-grid").appendChild(skillCard);
+
+        skillNameInput.value = "";
+    });
+}
+
+const topicSkillName = document.querySelector("#topic-skill-name");
+
+const skillNames = {
+    python: "Python",
+    "web-development": "Web Development",
+    "git-github": "Git & GitHub",
+    sql: "SQL"
+};
+
+if (topicSkillName && skillNames[skill]) {
+    topicSkillName.textContent = skillNames[skill];
+}
+
+const topicList = document.querySelector("#topic-list");
+
+if (topicList && skill && skillTopics[skill]) {
+    topicList.innerHTML = "";
+
+    skillTopics[skill].forEach(function(topicName) {
+    const topicItem = document.createElement("div");
+    topicItem.classList.add("topic-item");
+
+    const topicKey = topicName
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/\s+/g, "-");
+
+    topicItem.innerHTML = `
+        <span>${topicName}</span>
+        <a href="topic.html?skill=${skill}&topic=${topicKey}">Open</a>
+    `;
+
+    topicList.appendChild(topicItem);
+});
 }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills - Student Skill Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <aside>
+        <h2>Skill Tracker</h2>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="skills.html" class="active">Skills</a>
+            <a href="topics.html">Topics</a>
+            <a href="#">Projects</a>
+            <a href="#">Notes</a>
+        </nav>
+    </aside>
+
+    <main>
+
+        <header>
+            <p>Learning Skills</p>
+            <h1>My Skills</h1>
+            <p>Track your progress across the skills you are learning.</p>
+        </header>
+
+        <section>
+            <h2>My Skills</h2>
+            <div class="add-skill">
+                <h3>Add a Skill</h3>
+                <input type="text" id="skill-name-input" placeholder="Enter skill name">
+                <button id="add-skill-button">Add Skill</button>
+            </div>
+
+            <div class="skill-grid">
+
+                <article>
+                    <h3>Python</h3>
+                    <p id="python-skill-page-progress">0%</p>
+
+                    <div class="skill-progress">
+                        <div id="python-skill-page-progress-fill" class="skill-progress-fill"></div>
+                    </div>
+
+                    <p id="python-skill-page-topic-count">0 of 5 topics completed</p>
+
+                    <a href="topics.html?skill=python">View Topics</a>
+                </article>
+
+                <article>
+                    <h3>Web Development</h3>
+                    <p>0%</p>
+
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 0%;"></div>
+                    </div>
+
+                    <p>0 topics completed</p>
+
+                    <a href="#">View Topics</a>
+                </article>
+
+                <article>
+                    <h3>Git & GitHub</h3>
+                    <p>0%</p>
+
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 0%;"></div>
+                    </div>
+
+                    <p>0 topics completed</p>
+
+                    <a href="#">View Topics</a>
+                </article>
+
+                <article>
+                    <h3>SQL</h3>
+                    <p>0%</p>
+
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: 0%;"></div>
+                    </div>
+
+                    <p>0 topics completed</p>
+
+                    <a href="#">View Topics</a>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+    <script src="script.js"></script>
+
+</body>
+</html>
