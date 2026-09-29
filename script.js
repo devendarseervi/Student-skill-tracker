@@ -347,3 +347,36 @@ if (projectForm && projectList) {
     });
 }
 
+const noteForm = document.querySelector("#note-form");
+const noteList = document.querySelector("#note-list");
+
+if (noteForm && noteList) {
+    noteForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const noteTitle = document.querySelector("#note-title").value.trim();
+        const noteSkill = document.querySelector("#note-skill").value;
+        const noteContent = document.querySelector("#note-content").value.trim();
+
+        const noteCard = document.createElement("article");
+        noteCard.classList.add("note-card");
+
+        const titleElement = document.createElement("h3");
+        titleElement.textContent = noteTitle;
+
+        const skillElement = document.createElement("p");
+        skillElement.textContent = "Skill: " + noteSkill;
+
+        const contentElement = document.createElement("p");
+        contentElement.textContent = noteContent;
+
+        noteCard.appendChild(titleElement);
+        noteCard.appendChild(skillElement);
+        noteCard.appendChild(contentElement);
+
+        noteList.appendChild(noteCard);
+
+        noteForm.reset();
+    });
+}
+

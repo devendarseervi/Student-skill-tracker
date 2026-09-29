@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes - Skill Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2>Skill Tracker</h2>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="skills.html">Skills</a>
+            <a href="topics.html">Topics</a>
+            <a href="projects.html">Projects</a>
+            <a href="notes.html" class="active">Notes</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <h1>Notes</h1>
+            <p>Create and manage your learning notes.</p>
+        </header>
+
+        <section class="content-section">
+            <h2>Add Note</h2>
+
+            <form id="note-form">
+
+                <label for="note-title">Note Title</label>
+                <input type="text" id="note-title" required>
+
+                <label for="note-skill">Skill</label>
+                <select id="note-skill" required>
+                    <option value="">Select a skill</option>
+                    <option value="Python">Python</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="HTML & CSS">HTML & CSS</option>
+                    <option value="SQL">SQL</option>
+                    <option value="Git & GitHub">Git & GitHub</option>
+                </select>
+
+                <label for="note-content">Note Content</label>
+                <textarea id="note-content" rows="6" required></textarea>
+
+                <button type="submit">Add Note</button>
+
+            </form>
+        </section>
+
+        <section class="content-section">
+            <h2>My Notes</h2>
+
+            <div id="note-list">
+                <!-- Notes will appear here -->
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
