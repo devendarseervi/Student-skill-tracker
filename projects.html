@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Skill Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2>Skill Tracker</h2>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="skills.html">Skills</a>
+            <a href="topics.html">Topics</a>
+            <a href="projects.html" class="active">Projects</a>
+            <a href="#">Notes</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <h1>Projects</h1>
+            <p>Track the projects you are working on and have completed.</p>
+        </header>
+
+        <section class="content-section">
+    <h2>Add Project</h2>
+
+    <form id="project-form">
+
+        <label for="project-name">Project Name</label>
+        <input type="text" id="project-name" required>
+
+        <label for="project-skill">Skill</label>
+        <select id="project-skill" required>
+            <option value="">Select a skill</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="HTML & CSS">HTML & CSS</option>
+            <option value="SQL">SQL</option>
+            <option value="Git & GitHub">Git & GitHub</option>
+        </select>
+
+        <label for="project-status">Status</label>
+        <select id="project-status" required>
+            <option value="">Select status</option>
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+
+        <button type="submit">Add Project</button>
+
+    </form>
+</section>
+
+        <section class="content-section">
+            <h2>My Projects</h2>
+
+            <div id="project-list">
+                <!-- Projects will appear here -->
+            </div>
+        </section>
+
+    </main>
+    <script src="script.js"></script>
+
+</body>
+</html>

@@ -313,3 +313,37 @@ if (topicList && skill && skillTopics[skill]) {
     topicList.appendChild(topicItem);
 });
 }
+
+const projectForm = document.querySelector("#project-form");
+const projectList = document.querySelector("#project-list");
+
+if (projectForm && projectList) {
+    projectForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const projectName = document.querySelector("#project-name").value;
+        const projectSkill = document.querySelector("#project-skill").value;
+        const projectStatus = document.querySelector("#project-status").value;
+
+        const projectCard = document.createElement("article");
+        projectCard.classList.add("project-card");
+
+        const nameElement = document.createElement("h3");
+        nameElement.textContent = projectName;
+
+        const skillElement = document.createElement("p");
+        skillElement.textContent = "Skill: " + projectSkill;
+
+        const statusElement = document.createElement("p");
+        statusElement.textContent = "Status: " + projectStatus;
+
+        projectCard.appendChild(nameElement);
+        projectCard.appendChild(skillElement);
+        projectCard.appendChild(statusElement);
+
+        projectList.appendChild(projectCard);
+
+        projectForm.reset();
+    });
+}
+

@@ -151,3 +151,39 @@ section {
     border-radius: 8px;
     background-color: #f9fafb;
 }
+
+/* Project form */
+
+#project-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+}
+
+#project-form label {
+    font-weight: 600;
+}
+
+#project-form input,
+#project-form select {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #ffffff;
+    font-size: 14px;
+}
+
+#project-form button {
+    width: fit-content;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #374151;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#project-form button:hover {
+    background: #111827;
+}
