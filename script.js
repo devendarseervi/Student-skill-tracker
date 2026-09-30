@@ -300,25 +300,64 @@ if (skillNameInput && addSkillButton) {
             return;
         }
 
-        const skillCard = document.createElement("article");
+        fetch("http://127.0.0.1:8000/skills", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: skillName
+            })
+        })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(data.detail || "Failed to create skill");
+                    }
 
-        skillCard.innerHTML = `
-            <h3>${skillName}</h3>
-            <p>0%</p>
+                    return data;
+                });
+            })
+            .then(function(data) {
+                const skillCard = document.createElement("article");
+            
+   
 
-            <div class="skill-progress">
-                <div class="skill-progress-fill" style="width: 0%;"></div>
-            </div>
+const nameElement = document.createElement("h3");
+nameElement.textContent = data.name;
 
-            <p>0 topics completed</p>
+const progressElement = document.createElement("p");
+progressElement.textContent = "0%";
 
-            <a href="#">View Topics</a>
-        `;
+const progressContainer = document.createElement("div");
+progressContainer.classList.add("skill-progress");
 
-        document.querySelector(".skill-grid").appendChild(skillCard);
+const progressFill = document.createElement("div");
+progressFill.classList.add("skill-progress-fill");
+progressFill.style.width = "0%";
 
-        skillNameInput.value = "";
-    });
+const topicCount = document.createElement("p");
+topicCount.textContent = "0 topics completed";
+
+const topicsLink = document.createElement("a");
+topicsLink.textContent = "View Topics";
+topicsLink.href = "#";
+
+skillCard.appendChild(nameElement);
+skillCard.appendChild(progressElement);
+skillCard.appendChild(progressContainer);
+progressContainer.appendChild(progressFill);
+skillCard.appendChild(topicCount);
+skillCard.appendChild(topicsLink);
+
+document.querySelector(".skill-grid").appendChild(skillCard);
+
+   skillNameInput.value = "";
+ })
+  .catch(function(error) {
+    alert(error.message);
+  })
+});  
 }
 
 const topicSkillName = document.querySelector("#topic-skill-name");

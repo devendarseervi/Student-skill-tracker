@@ -1,7 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import sqlite3
+from pydantic import BaseModel, Field
+
 
 app = FastAPI()
+
+
+class SkillCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=50)
+
 
 def get_db_connection():
     connection = sqlite3.connect("database.db")
@@ -76,6 +83,39 @@ def get_skills():
     connection.close()
 
     return {"skills": [dict(skill) for skill in skills]}
+
+@app.post("/skills")
+def create_skill(skill: SkillCreate):
+    connection = get_db_connection()
+
+    existing_skill = connection.execute(
+    "SELECT id FROM skills WHERE name = ?",
+    (skill.name,)
+    ).fetchone()
+
+    if existing_skill is not None:
+        connection.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Skill already exists"
+    )
+
+    cursor = connection.execute(
+        "INSERT INTO skills (name) VALUES (?)",
+        (skill.name,)
+    )
+
+    connection.commit()
+
+    skill_id = cursor.lastrowid
+
+    connection.close()
+
+    return {
+        "id": skill_id,
+        "name": skill.name,
+        "is_default": 0
+    }
 
 @app.get("/skills/{skill_id}")
 def get_skill(skill_id: int):
