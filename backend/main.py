@@ -168,6 +168,82 @@ def get_topics(skill_id: int):
         "topics": [dict(topic) for topic in topics]
     }
 
+@app.get("/skills/{skill_id}/progress")
+def get_skill_progress(skill_id: int):
+    connection = get_db_connection()
+
+    skill = connection.execute(
+        "SELECT id, name FROM skills WHERE id = ?",
+        (skill_id,)
+    ).fetchone()
+
+    if skill is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    result = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS total_topics,
+            COALESCE(SUM(completed), 0) AS completed_topics
+        FROM topics
+        WHERE skill_id = ?
+        """,
+        (skill_id,)
+    ).fetchone()
+
+    connection.close()
+
+    total_topics = result["total_topics"]
+    completed_topics = result["completed_topics"]
+
+    percentage = 0
+
+    if total_topics > 0:
+        percentage = round(
+            (completed_topics / total_topics) * 100,
+            2
+        )
+
+    return {
+        "skill_id": skill_id,
+        "skill_name": skill["name"],
+        "completed_topics": completed_topics,
+        "total_topics": total_topics,
+        "percentage": percentage
+    }
+
+@app.patch("/topics/{topic_id}/complete")
+def complete_topic(topic_id: int):
+    connection = get_db_connection()
+
+    topic = connection.execute(
+        "SELECT id FROM topics WHERE id = ?",
+        (topic_id,)
+    ).fetchone()
+
+    if topic is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Topic not found"
+        )
+
+    connection.execute(
+        "UPDATE topics SET completed = 1 WHERE id = ?",
+        (topic_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Topic completed"
+    }
+
 @app.get("/skills/name/{skill_name}")
 def get_skill_by_name(skill_name: str):
     connection = get_db_connection()

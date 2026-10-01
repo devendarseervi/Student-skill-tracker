@@ -9,7 +9,7 @@ continueButtons.forEach(function(button) {
 
 const params = new URLSearchParams(window.location.search);
 
-const skill = params.get("skill");
+const skill = params.get("skill") || "python";
 const topic = params.get("topic");
 
 const topics = {
@@ -96,154 +96,267 @@ except ZeroDivisionError:
 },
 };
 
-const selectedTopic = topics[topic];
-
-if (selectedTopic) {
-    document.querySelector("#topic-title").textContent = selectedTopic.name;
-    const skillNames = {
+const skillNames = {
     python: "Python",
     "web-development": "Web Development",
     "git-github": "Git & GitHub",
     sql: "SQL"
 };
 
+const selectedTopic = topics[topic];
+
+if (selectedTopic) {
+    document.querySelector("#topic-title").textContent = selectedTopic.name;
+
+
 document.querySelector("#skill-name").textContent = skillNames[skill] || skill;
     document.querySelector("#topic-content").innerHTML = selectedTopic.content;
 
-    const savedStatus = localStorage.getItem(topic);
+    fetch(
+    "http://127.0.0.1:8000/skills/name/" +
+    encodeURIComponent(skillNames[skill])
+)
+.then(function(response) {
+    if (!response.ok) {
+        throw new Error("Skill not found");
+    }
 
-    if (savedStatus === "completed") {
+    return response.json();
+})
+.then(function(skillData) {
+    return fetch(
+        "http://127.0.0.1:8000/skills/" +
+        skillData.id +
+        "/topics"
+    );
+})
+.then(function(response) {
+    if (!response.ok) {
+        throw new Error("Could not load topic status");
+    }
+
+    return response.json();
+})
+.then(function(data) {
+    const currentTopic = data.topics.find(function(item) {
+        const topicKey = item.name
+            .toLowerCase()
+            .replace(/&/g, "and")
+            .replace(/\s+/g, "-");
+
+        return topicKey === topic;
+    });
+
+    if (!currentTopic) {
+        throw new Error("Topic not found");
+    }
+
+    if (currentTopic.completed === 1) {
         selectedTopic.completed = true;
         document.querySelector("#topic-status").textContent = "Completed";
     }
+})
+.catch(function(error) {
+    console.error(error);
+});
 }
 
 const completeButton = document.querySelector("#complete-button");
 
 if (completeButton && selectedTopic) {
     completeButton.addEventListener("click", function() {
-        selectedTopic.completed = true;
+        fetch(
+            "http://127.0.0.1:8000/skills/name/" +
+            encodeURIComponent(skillNames[skill])
+        )
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Skill not found");
+            }
 
-        localStorage.setItem(topic, "completed");
-        console.log("Completed topic key:", topic);
+            return response.json();
+        })
+        .then(function(skillData) {
+            return fetch(
+                "http://127.0.0.1:8000/skills/" +
+                skillData.id +
+                "/topics"
+            );
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not load topics");
+            }
 
-        document.querySelector("#topic-status").textContent = "Completed";
+            return response.json();
+        })
+        .then(function(data) {
+            const currentTopic = data.topics.find(function(item) {
+                const topicKey = item.name
+                    .toLowerCase()
+                    .replace(/&/g, "and")
+                    .replace(/\s+/g, "-");
+
+                return topicKey === topic;
+            });
+
+            if (!currentTopic) {
+                throw new Error("Topic not found");
+            }
+
+            return fetch(
+                "http://127.0.0.1:8000/topics/" +
+                currentTopic.id +
+                "/complete",
+                {
+                    method: "PATCH"
+                }
+            );
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not complete topic");
+            }
+
+            return response.json();
+        })
+        .then(function(data) {
+            selectedTopic.completed = true;
+
+            document.querySelector("#topic-status").textContent = "Completed";
+
+            console.log(data.message);
+        })
+        .catch(function(error) {
+            console.error(error);
+            alert(error.message);
+        });
     });
 }
 
-const skillTopics = {
-    python: [
-        "Variables",
-        "Data Types",
-        "Operators",
-        "Conditional Statements",
-        "Loops"
-    ],
-
-    "web-development": [
-        "HTML Basics",
-        "CSS Basics",
-        "JavaScript Basics"
-    ],
-
-    "git-github": [
-        "Git Basics",
-        "Repositories",
-        "Commits",
-        "Branches"
-    ],
-
-    sql: [
-        "SQL Basics",
-        "SELECT Statement",
-        "WHERE Clause",
-        "JOINs"
-    ]
-};
-
-function getSkillProgress(skillName) {
-    const topicNames = skillTopics[skillName];
-
-    if (!topicNames || topicNames.length === 0) {
-        return {
-            completed: 0,
-            total: 0,
-            percentage: 0
-        };
-    }
-
-    let completed = 0;
-
-    topicNames.forEach(function(topicName) {
-        const topicKey = topicName
-            .toLowerCase()
-            .replace(/&/g, "and")
-            .replace(/\s+/g, "-");
-
-        if (localStorage.getItem(topicKey) === "completed") {
-            completed++;
+function loadSkillProgress(skillName) {
+    fetch(
+        "http://127.0.0.1:8000/skills/name/" +
+        encodeURIComponent(skillName)
+    )
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("Skill not found");
         }
+
+        return response.json();
+    })
+    .then(function(skillData) {
+        return fetch(
+            "http://127.0.0.1:8000/skills/" +
+            skillData.id +
+            "/progress"
+        );
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("Could not load skill progress");
+        }
+
+        return response.json();
+    })
+    .then(function(progressData) {
+        const completedTopics = progressData.completed_topics;
+        const totalTopics = progressData.total_topics;
+        const progress = progressData.percentage;
+
+        const progressElement =
+            document.querySelector("#python-progress");
+
+        if (progressElement) {
+            progressElement.textContent =
+                "Progress: " + progress + "%";
+        }
+
+        const pythonSkillProgress =
+            document.querySelector("#python-skill-progress");
+
+        const pythonSkillProgressFill =
+            document.querySelector("#python-skill-progress-fill");
+
+        const pythonTopicCount =
+            document.querySelector("#python-topic-count");
+
+        if (
+            pythonSkillProgress &&
+            pythonSkillProgressFill &&
+            pythonTopicCount
+        ) {
+            pythonSkillProgress.textContent =
+                progress + "%";
+
+            pythonSkillProgressFill.style.width =
+                progress + "%";
+
+            pythonTopicCount.textContent =
+                completedTopics +
+                " of " +
+                totalTopics +
+                " topics completed";
+        }
+
+        const overallProgress =
+            document.querySelector("#overall-progress");
+
+        const overallProgressFill =
+            document.querySelector("#overall-progress-fill");
+
+        if (overallProgress && overallProgressFill) {
+            overallProgress.textContent =
+                progress + "%";
+
+            overallProgressFill.style.width =
+                progress + "%";
+        }
+
+        const pythonSkillPageProgress =
+            document.querySelector("#python-skill-page-progress");
+
+        const pythonSkillPageProgressFill =
+            document.querySelector("#python-skill-page-progress-fill");
+
+        const pythonSkillPageTopicCount =
+            document.querySelector("#python-skill-page-topic-count");
+
+        if (
+            pythonSkillPageProgress &&
+            pythonSkillPageProgressFill &&
+            pythonSkillPageTopicCount
+        ) {
+            pythonSkillPageProgress.textContent =
+                progress + "%";
+
+            pythonSkillPageProgressFill.style.width =
+                progress + "%";
+
+            pythonSkillPageTopicCount.textContent =
+                completedTopics +
+                " of " +
+                totalTopics +
+                " topics completed";
+        }
+    })
+    .catch(function(error) {
+        console.error(error);
     });
-
-    const percentage = (completed / topicNames.length) * 100;
-
-    return {
-        completed: completed,
-        total: topicNames.length,
-        percentage: percentage
-    };
 }
 
 const currentSkill = skill || "python";
-const currentSkillProgress = getSkillProgress(currentSkill);
 
-const completedTopics = currentSkillProgress.completed;
-const totalTopics = currentSkillProgress.total;
-const currentProgress = currentSkillProgress.percentage;
+const progressSkillNames = {
+    python: "Python",
+    "web-development": "Web Development",
+    "git-github": "Git & GitHub",
+    sql: "SQL"
+};
 
-const pythonProgressData = getSkillProgress("python");
-const pythonProgress = pythonProgressData.percentage;
-const pythonCompletedTopics = pythonProgressData.completed;
-const pythonTotalTopics = pythonProgressData.total;
-
-const progressElement = document.querySelector("#python-progress");
-
-if (progressElement) {
-    progressElement.textContent = "Progress: " + currentProgress + "%";
-}
-
-const pythonSkillProgress = document.querySelector("#python-skill-progress");
-const pythonSkillProgressFill = document.querySelector("#python-skill-progress-fill");
-const pythonTopicCount = document.querySelector("#python-topic-count");
-
-if (pythonSkillProgress && pythonSkillProgressFill && pythonTopicCount) {
-    pythonSkillProgress.textContent = pythonProgress + "%";
-    pythonSkillProgressFill.style.width = pythonProgress + "%";
-    pythonTopicCount.textContent =
-        pythonCompletedTopics + " of " + pythonTotalTopics + " topics completed";
-}
-
-const overallProgress = document.querySelector("#overall-progress");
-const overallProgressFill = document.querySelector("#overall-progress-fill");
-
-if (overallProgress && overallProgressFill) {
-    overallProgress.textContent = pythonProgress + "%";
-    overallProgressFill.style.width = pythonProgress + "%";
-}
-
-const pythonSkillPageProgress = document.querySelector("#python-skill-page-progress");
-const pythonSkillPageProgressFill = document.querySelector("#python-skill-page-progress-fill");
-const pythonSkillPageTopicCount = document.querySelector("#python-skill-page-topic-count");
-
-if (
-    pythonSkillPageProgress &&
-    pythonSkillPageProgressFill &&
-    pythonSkillPageTopicCount
-) {
-    pythonSkillPageProgress.textContent = pythonProgress + "%";
-    pythonSkillPageProgressFill.style.width = pythonProgress + "%";
-    pythonSkillPageTopicCount.textContent =
-        pythonCompletedTopics + " of " + pythonTotalTopics + " topics completed";
+if (progressSkillNames[currentSkill]) {
+    loadSkillProgress(progressSkillNames[currentSkill]);
 }
 
 const skillGrid = document.querySelector("#skill-grid");
@@ -361,13 +474,6 @@ document.querySelector(".skill-grid").appendChild(skillCard);
 }
 
 const topicSkillName = document.querySelector("#topic-skill-name");
-
-const skillNames = {
-    python: "Python",
-    "web-development": "Web Development",
-    "git-github": "Git & GitHub",
-    sql: "SQL"
-};
 
 if (topicSkillName && skillNames[skill]) {
     topicSkillName.textContent = skillNames[skill];
