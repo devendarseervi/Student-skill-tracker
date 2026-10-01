@@ -1,9 +1,18 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 from pydantic import BaseModel, Field
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class SkillCreate(BaseModel):
@@ -24,6 +33,16 @@ def create_tables():
             name TEXT NOT NULL,
             description TEXT,
             is_default INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS topics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            skill_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            completed INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (skill_id) REFERENCES skills(id)
         )
     """)
 
@@ -63,8 +82,54 @@ def seed_default_skills():
     connection.commit()
     connection.close()
 
+def seed_default_topics():
+    connection = get_db_connection()
+
+    python_skill = connection.execute(
+        "SELECT id FROM skills WHERE name = ?",
+        ("Python",)
+    ).fetchone()
+
+    if python_skill is None:
+        connection.close()
+        return
+
+    python_skill_id = python_skill["id"]
+
+    default_topics = [
+        "Variables",
+        "Data Types",
+        "Operators",
+        "Conditional Statements",
+        "Loops",
+        "Functions",
+        "Lists",
+        "Tuples",
+        "Dictionaries",
+        "Sets",
+        "File Handling",
+        "Exception Handling",
+        "OOP"
+    ]
+
+    for topic_name in default_topics:
+        existing_topic = connection.execute(
+            "SELECT id FROM topics WHERE skill_id = ? AND name = ?",
+            (python_skill_id, topic_name)
+        ).fetchone()
+
+        if existing_topic is None:
+            connection.execute(
+                "INSERT INTO topics (skill_id, name) VALUES (?, ?)",
+                (python_skill_id, topic_name)
+            )
+
+    connection.commit()
+    connection.close()
+
 create_tables()
 seed_default_skills()
+seed_default_topics()
 
 
 @app.get("/")
@@ -83,6 +148,44 @@ def get_skills():
     connection.close()
 
     return {"skills": [dict(skill) for skill in skills]}
+
+@app.get("/skills/{skill_id}/topics")
+def get_topics(skill_id: int):
+    connection = get_db_connection()
+
+    topics = connection.execute(
+        """
+        SELECT id, name, completed
+        FROM topics
+        WHERE skill_id = ?
+        """,
+        (skill_id,)
+    ).fetchall()
+
+    connection.close()
+
+    return {
+        "topics": [dict(topic) for topic in topics]
+    }
+
+@app.get("/skills/name/{skill_name}")
+def get_skill_by_name(skill_name: str):
+    connection = get_db_connection()
+
+    skill = connection.execute(
+        "SELECT id, name FROM skills WHERE name = ?",
+        (skill_name,)
+    ).fetchone()
+
+    connection.close()
+
+    if skill is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    return dict(skill)
 
 @app.post("/skills")
 def create_skill(skill: SkillCreate):

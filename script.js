@@ -375,25 +375,67 @@ if (topicSkillName && skillNames[skill]) {
 
 const topicList = document.querySelector("#topic-list");
 
-if (topicList && skill && skillTopics[skill]) {
-    topicList.innerHTML = "";
+if (topicList && skill && skillNames[skill]) {
+    fetch(
+        "http://127.0.0.1:8000/skills/name/" +
+        encodeURIComponent(skillNames[skill])
+    )
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("Skill not found");
+        }
 
-    skillTopics[skill].forEach(function(topicName) {
-    const topicItem = document.createElement("div");
-    topicItem.classList.add("topic-item");
+        return response.json();
+    })
+    .then(function(skillData) {
+        return fetch(
+            "http://127.0.0.1:8000/skills/" +
+            skillData.id +
+            "/topics"
+        );
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("Could not load topics");
+        }
 
-    const topicKey = topicName
-        .toLowerCase()
-        .replace(/&/g, "and")
-        .replace(/\s+/g, "-");
+        return response.json();
+    })
+    .then(function(data) {
+        topicList.innerHTML = "";
 
-    topicItem.innerHTML = `
-        <span>${topicName}</span>
-        <a href="topic.html?skill=${skill}&topic=${topicKey}">Open</a>
-    `;
+        data.topics.forEach(function(topic) {
+            const topicItem = document.createElement("div");
+            topicItem.classList.add("topic-item");
 
-    topicList.appendChild(topicItem);
-});
+            const topicName = document.createElement("span");
+            topicName.textContent = topic.name;
+
+            const openLink = document.createElement("a");
+
+            const topicKey = topic.name
+                .toLowerCase()
+                .replace(/&/g, "and")
+                .replace(/\s+/g, "-");
+
+            openLink.href =
+                "topic.html?skill=" +
+                skill +
+                "&topic=" +
+                topicKey;
+
+            openLink.textContent = "Open";
+
+            topicItem.appendChild(topicName);
+            topicItem.appendChild(openLink);
+
+            topicList.appendChild(topicItem);
+        });
+    })
+    .catch(function(error) {
+        console.error(error);
+        topicList.textContent = "Could not load topics.";
+    });
 }
 
 const projectForm = document.querySelector("#project-form");
