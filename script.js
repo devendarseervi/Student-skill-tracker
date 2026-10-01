@@ -368,36 +368,48 @@ if (skillGrid) {
         })
         .then(function(data) {
             data.skills.forEach(function(skill) {
-                const skillCard = document.createElement("article");
-
-                const nameElement = document.createElement("h3");
-                nameElement.textContent = skill.name;
-
-                const progressElement = document.createElement("p");
-                progressElement.textContent = "0%";
-
-                const progressContainer = document.createElement("div");
-                progressContainer.classList.add("skill-progress");
-
-                const progressFill = document.createElement("div");
-                progressFill.classList.add("skill-progress-fill");
-                progressFill.style.width = "0%";
-
-                const topicCount = document.createElement("p");
-                topicCount.textContent = "0 topics completed";
-
-                const topicsLink = document.createElement("a");
-                topicsLink.textContent = "View Topics";
-                topicsLink.href = "#";
-
-                skillCard.appendChild(nameElement);
-                skillCard.appendChild(progressElement);
-                skillCard.appendChild(progressContainer);
-                progressContainer.appendChild(progressFill);
-                skillCard.appendChild(topicCount);
-                skillCard.appendChild(topicsLink);
-
-                skillGrid.appendChild(skillCard);
+                fetch("http://127.0.0.1:8000/skills/" + skill.id + "/progress")
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(progressData) {
+                    const skillCard = document.createElement("article");
+                    
+                    
+                    
+                    const nameElement = document.createElement("h3");
+                    nameElement.textContent = skill.name;
+                    
+                    const progressElement = document.createElement("p");
+                    progressElement.textContent = progressData.percentage + "%";
+                    
+                    const progressContainer = document.createElement("div");
+                    progressContainer.classList.add("skill-progress");
+                    
+                    const progressFill = document.createElement("div");
+                    progressFill.classList.add("skill-progress-fill");
+                    progressFill.style.width = progressData.percentage + "%";
+                    
+                    const topicCount = document.createElement("p");
+                    topicCount.textContent = progressData.completed_topics + " of " + 
+                        progressData.total_topics +
+                        " topics completed";
+                    
+                    const topicsLink = document.createElement("a");
+                    topicsLink.textContent = "View Topics";
+                    topicsLink.href =
+                        "topics.html?skill=" +
+                        skill.name.toLowerCase();
+                    
+                    skillCard.appendChild(nameElement);
+                    skillCard.appendChild(progressElement);
+                    skillCard.appendChild(progressContainer);
+                    progressContainer.appendChild(progressFill);
+                    skillCard.appendChild(topicCount);
+                    skillCard.appendChild(topicsLink);
+                    
+                    skillGrid.appendChild(skillCard);
+                });
             });
         });
 }
