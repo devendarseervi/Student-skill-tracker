@@ -18,6 +18,19 @@ app.add_middleware(
 class SkillCreate(BaseModel):
     name: str = Field(min_length=2, max_length=50)
 
+class ProjectCreate(BaseModel):
+    skill_id: int
+    name: str = Field(min_length=2, max_length=100)
+    status: str = Field(min_length=1, max_length=30)
+
+class NoteCreate(BaseModel):
+    skill_id: int
+    title: str = Field(min_length=2, max_length=100)
+    content: str = Field(min_length=1, max_length=5000)
+
+class TopicContentUpdate(BaseModel):
+    content: str = Field(min_length=1, max_length=10000)
+
 
 def get_db_connection():
     connection = sqlite3.connect("database.db")
@@ -45,6 +58,37 @@ def create_tables():
             FOREIGN KEY (skill_id) REFERENCES skills(id)
         )
     """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            skill_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL,
+            FOREIGN KEY (skill_id) REFERENCES skills(id)
+        )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            skill_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            FOREIGN KEY (skill_id) REFERENCES skills(id)
+       )
+    """)
+
+    topic_columns = connection.execute(
+    "PRAGMA table_info(topics)"
+    ).fetchall()
+
+    column_names = [column["name"] for column in topic_columns]
+
+    if "content" not in column_names:
+       connection.execute(
+        "ALTER TABLE topics ADD COLUMN content TEXT DEFAULT ''"
+    )
 
     connection.commit()
     connection.close()
@@ -155,7 +199,7 @@ def get_topics(skill_id: int):
 
     topics = connection.execute(
         """
-        SELECT id, name, completed
+        SELECT id, name, content, completed
         FROM topics
         WHERE skill_id = ?
         """,
@@ -244,6 +288,37 @@ def complete_topic(topic_id: int):
         "message": "Topic completed"
     }
 
+@app.patch("/topics/{topic_id}/content")
+def update_topic_content(
+    topic_id: int,
+    topic: TopicContentUpdate
+):
+    connection = get_db_connection()
+
+    existing_topic = connection.execute(
+        "SELECT id FROM topics WHERE id = ?",
+        (topic_id,)
+    ).fetchone()
+
+    if existing_topic is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Topic not found"
+        )
+
+    connection.execute(
+        "UPDATE topics SET content = ? WHERE id = ?",
+        (topic.content, topic_id)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Topic content updated"
+    }
+
 @app.get("/skills/name/{skill_name}")
 def get_skill_by_name(skill_name: str):
     connection = get_db_connection()
@@ -294,6 +369,233 @@ def create_skill(skill: SkillCreate):
         "id": skill_id,
         "name": skill.name,
         "is_default": 0
+    }
+
+@app.delete("/skills/{skill_id}")
+def delete_skill(skill_id: int):
+    connection = get_db_connection()
+
+    skill = connection.execute(
+        "SELECT id FROM skills WHERE id = ?",
+        (skill_id,)
+    ).fetchone()
+
+    if skill is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    connection.execute(
+        "DELETE FROM topics WHERE skill_id = ?",
+        (skill_id,)
+    )
+
+    connection.execute(
+        "DELETE FROM projects WHERE skill_id = ?",
+        (skill_id,)
+    )
+
+    connection.execute(
+        "DELETE FROM notes WHERE skill_id = ?",
+    (skill_id,)
+    )
+
+    connection.execute(
+        "DELETE FROM skills WHERE id = ?",
+        (skill_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Skill deleted"
+    }
+
+@app.post("/projects")
+def create_project(project: ProjectCreate):
+    connection = get_db_connection()
+
+    skill = connection.execute(
+        "SELECT id FROM skills WHERE id = ?",
+        (project.skill_id,)
+    ).fetchone()
+
+    if skill is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    cursor = connection.execute(
+        """
+        INSERT INTO projects (skill_id, name, status)
+        VALUES (?, ?, ?)
+        """,
+        (
+            project.skill_id,
+            project.name,
+            project.status
+        )
+    )
+
+    connection.commit()
+
+    project_id = cursor.lastrowid
+
+    connection.close()
+
+    return {
+        "id": project_id,
+        "skill_id": project.skill_id,
+        "name": project.name,
+        "status": project.status
+    }
+
+@app.post("/notes")
+def create_note(note: NoteCreate):
+    connection = get_db_connection()
+
+    skill = connection.execute(
+        "SELECT id FROM skills WHERE id = ?",
+        (note.skill_id,)
+    ).fetchone()
+
+    if skill is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    cursor = connection.execute(
+        """
+        INSERT INTO notes (skill_id, title, content)
+        VALUES (?, ?, ?)
+        """,
+        (
+            note.skill_id,
+            note.title,
+            note.content
+        )
+    )
+
+    connection.commit()
+
+    note_id = cursor.lastrowid
+
+    connection.close()
+
+    return {
+        "id": note_id,
+        "skill_id": note.skill_id,
+        "title": note.title,
+        "content": note.content
+    }
+
+@app.get("/notes")
+def get_notes():
+    connection = get_db_connection()
+
+    notes = connection.execute(
+        """
+        SELECT
+            notes.id,
+            notes.title,
+            notes.content,
+            notes.skill_id,
+            skills.name AS skill_name
+        FROM notes
+        JOIN skills ON notes.skill_id = skills.id
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return {
+        "notes": [dict(note) for note in notes]
+    }
+
+@app.delete("/notes/{note_id}")
+def delete_note(note_id: int):
+    connection = get_db_connection()
+
+    note = connection.execute(
+        "SELECT id FROM notes WHERE id = ?",
+        (note_id,)
+    ).fetchone()
+
+    if note is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Note not found"
+        )
+
+    connection.execute(
+        "DELETE FROM notes WHERE id = ?",
+        (note_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Note deleted"
+    }
+
+@app.get("/projects")
+def get_projects():
+    connection = get_db_connection()
+
+    projects = connection.execute(
+        """
+        SELECT
+            projects.id,
+            projects.name,
+            projects.status,
+            projects.skill_id,
+            skills.name AS skill_name
+        FROM projects
+        JOIN skills ON projects.skill_id = skills.id
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return {
+        "projects": [dict(project) for project in projects]
+    }
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int):
+    connection = get_db_connection()
+
+    project = connection.execute(
+        "SELECT id FROM projects WHERE id = ?",
+        (project_id,)
+    ).fetchone()
+
+    if project is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    connection.execute(
+        "DELETE FROM projects WHERE id = ?",
+        (project_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Project deleted"
     }
 
 @app.get("/skills/{skill_id}")

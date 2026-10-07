@@ -103,16 +103,21 @@ const skillNames = {
     sql: "SQL"
 };
 
-const selectedTopic = topics[topic];
+const selectedTopic = {
+    name: "",
+    content: "",
+    completed: false
+};
 
-if (selectedTopic) {
-    document.querySelector("#topic-title").textContent = selectedTopic.name;
+const skillNameElement =
+    document.querySelector("#skill-name");
 
+if (skillNameElement) {
+    skillNameElement.textContent =
+        skillNames[skill] || skill;
+}
 
-document.querySelector("#skill-name").textContent = skillNames[skill] || skill;
-    document.querySelector("#topic-content").innerHTML = selectedTopic.content;
-
-    fetch(
+fetch(
     "http://127.0.0.1:8000/skills/name/" +
     encodeURIComponent(skillNames[skill])
 )
@@ -132,7 +137,7 @@ document.querySelector("#skill-name").textContent = skillNames[skill] || skill;
 })
 .then(function(response) {
     if (!response.ok) {
-        throw new Error("Could not load topic status");
+        throw new Error("Could not load topics");
     }
 
     return response.json();
@@ -151,15 +156,26 @@ document.querySelector("#skill-name").textContent = skillNames[skill] || skill;
         throw new Error("Topic not found");
     }
 
-    if (currentTopic.completed === 1) {
-        selectedTopic.completed = true;
-        document.querySelector("#topic-status").textContent = "Completed";
+    selectedTopic.name = currentTopic.name;
+    selectedTopic.content = currentTopic.content;
+    selectedTopic.completed = currentTopic.completed === 1;
+
+    document.querySelector("#topic-title").textContent =
+        currentTopic.name;
+
+    document.querySelector("#topic-content").innerHTML =
+        currentTopic.content;
+
+    if (selectedTopic.completed) {
+        document.querySelector("#topic-status").textContent =
+            "Completed";
     }
 })
 .catch(function(error) {
     console.error(error);
+    document.querySelector("#topic-content").textContent =
+        "Could not load topic content.";
 });
-}
 
 const completeButton = document.querySelector("#complete-button");
 
@@ -374,6 +390,7 @@ if (skillGrid) {
                 })
                 .then(function(progressData) {
                     const skillCard = document.createElement("article");
+                    skillCard.dataset.skillId = skill.id;
                     
                     
                     
@@ -401,13 +418,43 @@ if (skillGrid) {
                         "topics.html?skill=" +
                         skill.name.toLowerCase();
                     
+                    const deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.textContent = "Delete";
+                    deleteButton.classList.add("delete-skill-button");
+                    
                     skillCard.appendChild(nameElement);
                     skillCard.appendChild(progressElement);
                     skillCard.appendChild(progressContainer);
                     progressContainer.appendChild(progressFill);
                     skillCard.appendChild(topicCount);
                     skillCard.appendChild(topicsLink);
+                    skillCard.appendChild(deleteButton);
+
+                    deleteButton.addEventListener("click", function() {
+                        fetch(
+                            "http://127.0.0.1:8000/skills/" +
+                            skillCard.dataset.skillId,
+                            {
+                                method: "DELETE"
+                            }
+                        )
+                            .then(function(response) {
+                                if (!response.ok) {
+                                    throw new Error("Could not delete skill");
+                                }
                     
+                                return response.json();
+                            })
+                            .then(function(data) {
+                                console.log(data.message);
+                                skillCard.remove();
+                            })
+                            .catch(function(error) {
+                                alert(error.message);
+                            });
+                        });                    
+                                        
                     skillGrid.appendChild(skillCard);
                 });
             });
@@ -563,62 +610,298 @@ if (projectForm && projectList) {
     projectForm.addEventListener("submit", function(event) {
         event.preventDefault();
 
-        const projectName = document.querySelector("#project-name").value;
+        const projectName = document.querySelector("#project-name").value.trim();
         const projectSkill = document.querySelector("#project-skill").value;
         const projectStatus = document.querySelector("#project-status").value;
 
-        const projectCard = document.createElement("article");
-        projectCard.classList.add("project-card");
+        fetch(
+            "http://127.0.0.1:8000/skills/name/" +
+            encodeURIComponent(projectSkill)
+        )
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(data.detail || "Failed to find skill");
+                    }
 
-        const nameElement = document.createElement("h3");
-        nameElement.textContent = projectName;
+                    return data;
+                });
+            })
+            .then(function(skillData) {
+                console.log("Skill data:", skillData);
+console.log("Project data:", {
+    skill_id: skillData.id,
+    name: projectName,
+    status: projectStatus
+});
+                return fetch("http://127.0.0.1:8000/projects", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        skill_id: skillData.id,
+                        name: projectName,
+                        status: projectStatus
+                    })
+                });
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(data.detail || "Failed to create project");
+                    }
 
-        const skillElement = document.createElement("p");
-        skillElement.textContent = "Skill: " + projectSkill;
+                    return data;
+                });
+            })
+            .then(function(data) {
+                const projectCard = document.createElement("article");
+                projectCard.classList.add("project-card");
 
-        const statusElement = document.createElement("p");
-        statusElement.textContent = "Status: " + projectStatus;
+                const nameElement = document.createElement("h3");
+                nameElement.textContent = data.name;
 
-        projectCard.appendChild(nameElement);
-        projectCard.appendChild(skillElement);
-        projectCard.appendChild(statusElement);
+                const skillElement = document.createElement("p");
+                skillElement.textContent = "Skill: " + projectSkill;
 
-        projectList.appendChild(projectCard);
+                const statusElement = document.createElement("p");
+                statusElement.textContent = "Status: " + data.status;
+                
+                projectCard.dataset.projectId = data.id;
+                
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+                deleteButton.classList.add("delete-project-button");
+                
+                projectCard.appendChild(nameElement);
+                projectCard.appendChild(skillElement);
+                projectCard.appendChild(statusElement);
+                projectCard.appendChild(deleteButton);
+                
+                projectList.appendChild(projectCard);
+                
+                deleteButton.addEventListener("click", function() {
+    fetch(
+        "http://127.0.0.1:8000/projects/" +
+        projectCard.dataset.projectId,
+        {
+            method: "DELETE"
+        }
+    )
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not delete project");
+            }
 
-        projectForm.reset();
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data.message);
+            projectCard.remove();
+        })
+        .catch(function(error) {
+            alert(error.message);
+        });
+});
+
+                projectForm.reset();
+            })
+            .catch(function(error) {
+                if (error instanceof Error) {
+                    alert(error.message);
+                } else {
+                    alert(JSON.stringify(error));
+                }
+            });
     });
+}
+
+if (projectList) {
+    fetch("http://127.0.0.1:8000/projects")
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not load projects");
+            }
+
+            return response.json();
+        })
+        .then(function(data) {
+            data.projects.forEach(function(project) {
+                const projectCard = document.createElement("article");
+                projectCard.classList.add("project-card");
+
+                projectCard.dataset.projectId = project.id;
+
+                const nameElement = document.createElement("h3");
+                nameElement.textContent = project.name;
+
+                const skillElement = document.createElement("p");
+                skillElement.textContent = "Skill: " + project.skill_name;
+
+                const statusElement = document.createElement("p");
+                statusElement.textContent = "Status: " + project.status;
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+                deleteButton.classList.add("delete-project-button");
+
+                projectCard.appendChild(nameElement);
+                projectCard.appendChild(skillElement);
+                projectCard.appendChild(statusElement);
+                projectCard.appendChild(deleteButton);
+
+                projectList.appendChild(projectCard);
+
+                deleteButton.addEventListener("click", function() {
+                    fetch(
+                        "http://127.0.0.1:8000/projects/" +
+                        projectCard.dataset.projectId,
+                        {
+                            method: "DELETE"
+                        }
+                      )
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not delete project");
+            }
+
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data.message);
+            projectCard.remove();
+        })
+        .catch(function(error) {
+            alert(error.message);
+        });
+});
+            });
+        })
+        .catch(function(error) {
+            console.error(error);
+        });
 }
 
 const noteForm = document.querySelector("#note-form");
 const noteList = document.querySelector("#note-list");
 
-if (noteForm && noteList) {
-    noteForm.addEventListener("submit", function(event) {
-        event.preventDefault();
+if (noteList) {
+    fetch("http://127.0.0.1:8000/notes")
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error("Could not load notes");
+            }
 
-        const noteTitle = document.querySelector("#note-title").value.trim();
-        const noteSkill = document.querySelector("#note-skill").value;
-        const noteContent = document.querySelector("#note-content").value.trim();
+            return response.json();
+        })
+        .then(function(data) {
+            data.notes.forEach(function(note) {
+                const noteCard = document.createElement("article");
+                noteCard.classList.add("note-card");
 
-        const noteCard = document.createElement("article");
-        noteCard.classList.add("note-card");
+                const titleElement = document.createElement("h3");
+                titleElement.textContent = note.title;
 
-        const titleElement = document.createElement("h3");
-        titleElement.textContent = noteTitle;
+                const skillElement = document.createElement("p");
+                skillElement.textContent =
+                    "Skill: " + note.skill_name;
 
-        const skillElement = document.createElement("p");
-        skillElement.textContent = "Skill: " + noteSkill;
+                const contentElement = document.createElement("p");
+                contentElement.textContent = note.content;
 
-        const contentElement = document.createElement("p");
-        contentElement.textContent = noteContent;
+                noteCard.appendChild(titleElement);
+                noteCard.appendChild(skillElement);
+                noteCard.appendChild(contentElement);
 
-        noteCard.appendChild(titleElement);
-        noteCard.appendChild(skillElement);
-        noteCard.appendChild(contentElement);
-
-        noteList.appendChild(noteCard);
-
-        noteForm.reset();
-    });
+                noteList.appendChild(noteCard);
+            });
+        })
+        .catch(function(error) {
+            console.error(error);
+        });
 }
 
+        if (noteForm && noteList) {
+        noteForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const noteTitle =
+            document.querySelector("#note-title").value.trim();
+
+        const noteSkill =
+            document.querySelector("#note-skill").value;
+
+        const noteContent =
+            document.querySelector("#note-content").value.trim();
+
+        fetch(
+            "http://127.0.0.1:8000/skills/name/" +
+            encodeURIComponent(noteSkill)
+        )
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(
+                            data.detail || "Failed to find skill"
+                        );
+                    }
+
+                    return data;
+                });
+            })
+            .then(function(skillData) {
+                return fetch("http://127.0.0.1:8000/notes", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        skill_id: skillData.id,
+                        title: noteTitle,
+                        content: noteContent
+                    })
+                });
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(
+                            data.detail || "Failed to create note"
+                        );
+                    }
+
+                    return data;
+                });
+            })
+            .then(function(data) {
+    console.log("Note created:", data);
+
+    const noteCard = document.createElement("article");
+    noteCard.classList.add("note-card");
+
+    const titleElement = document.createElement("h3");
+    titleElement.textContent = data.title;
+
+    const skillElement = document.createElement("p");
+    skillElement.textContent =
+        "Skill: " + noteSkill;
+
+    const contentElement = document.createElement("p");
+    contentElement.textContent = data.content;
+
+    noteCard.appendChild(titleElement);
+    noteCard.appendChild(skillElement);
+    noteCard.appendChild(contentElement);
+
+    noteList.appendChild(noteCard);
+
+    noteForm.reset();
+})
+            .catch(function(error) {
+                alert(error.message);
+            });
+    });
+}
