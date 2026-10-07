@@ -117,10 +117,11 @@ if (skillNameElement) {
         skillNames[skill] || skill;
 }
 
-fetch(
-    "http://127.0.0.1:8000/skills/name/" +
-    encodeURIComponent(skillNames[skill])
-)
+if (topic) {
+    fetch(
+        "http://127.0.0.1:8000/skills/name/" +
+        encodeURIComponent(skillNames[skill])
+    )
 .then(function(response) {
     if (!response.ok) {
         throw new Error("Skill not found");
@@ -176,6 +177,7 @@ fetch(
     document.querySelector("#topic-content").textContent =
         "Could not load topic content.";
 });
+}
 
 const completeButton = document.querySelector("#complete-button");
 

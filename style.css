@@ -269,3 +269,18 @@ section {
 #complete-button:hover {
     background: #111827;
 }
+
+.delete-skill-button {
+    margin-top: 12px;
+    margin-left: 12px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #374151;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-skill-button:hover {
+    background-color: #111827;
+}
